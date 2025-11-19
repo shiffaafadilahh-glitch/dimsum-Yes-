@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dimsum Apps V14 - Menu Bergambar 2 Kolom</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        /* BASE & LAYOUT */
+        body {
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f8f8f8;
+            color: #333;
+        }
+        .container {
+            width: 95%;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px 0;
+        }
+
+        /* 1. SPLASH SCREEN */
+        #splash-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-color: #a30000; color: white; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; z-index: 9999; transition: opacity 0.5s ease-out;
+        }
+        .btn-start {
+            background-color: #ffcc00; color: #a30000; padding: 12px 30px; border-radius: 30px; font-weight: bold; text-decoration: none; cursor: pointer; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+        }
+
+        /* HEADER & MENU (Tampilan Dalemnya/Utama) */
+        .header { background-color: #a30000; color: white; padding: 15px 20px; display: flex; justify-content: flex-start; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .header h1 { font-size: 1.2em; margin: 0; }
+        .shop-profile { display: flex; align-items: flex-start; padding: 30px 20px; background-color: white; border-bottom: 5px solid #ffcc00; margin-bottom: 20px; border-radius: 0 0 15px 15px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .logo-circle { width: 90px; height: 90px; border-radius: 50%; background-color: #ffcc00; color: #a30000; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 0.9em; font-weight: bold; text-align: center; line-height: 1.1; padding: 5px; margin-right: 20px; border: 3px solid #a30000; flex-shrink: 0; }
+        
+        /* LAYOUT GRID 2 KOLOM */
+        .product-grid { 
+            display: grid; 
+            grid-template-columns: 1fr 1fr; 
+            gap: 25px; 
+            padding: 0 20px; 
+        }
+        @media (min-width: 900px) {
+            .product-grid {
+                grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            }
+        }
+        
+        .product-card { cursor: pointer; background: white; border-radius: 12px; box-shadow: 0 6px 15px rgba(0,0,0,0.08); overflow: hidden; transition: transform 0.3s; }
+        .product-card:hover { transform: translateY(-5px); }
+        
+        /* PENTING: Gaya untuk Gambar Menu */
+        .product-image { 
+            width: 100%; 
+            height: 200px; 
+            object-fit: cover; 
+            display: block; 
+        }
+        
+        .product-content { padding: 15px; }
+        .product-footer { display: flex; justify-content: flex-end; align-items: center; gap: 10px; }
+
+
+        /* BARU: STORE INFO SECTION */
+        .store-info-section {
+            background-color: #fff;
+            padding: 20px;
+            margin-top: 30px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .store-info-section h3 {
+            color: #a30000;
+            border-bottom: 2px solid #ffcc00;
+            padding-bottom: 5px;
+            margin-top: 0;
+            display: flex;
+            align-items: center;
+            font-size: 1.2em;
+        }
+
+        /* MODAL PORSI */
+        .modal { display: none; position: fixed; z-index: 1001; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.7); }
+        .modal-content { background-color: #fefefe; margin: 10% auto; padding: 20px; border-radius: 10px; width: 85%; max-width: 450px; position: relative; }
+        .portion-option { border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; border-radius: 8px; cursor: pointer; transition: background-color 0.2s; }
+        .portion-option.selected { border-color: #a30000; background-color: #ffe6e6; font-weight: bold; }
+        .portion-price { float: right; color: #a30000; }
+        .modal-checkout-group { display: flex; justify-content: space-between; align-items: center; margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px; }
+        .modal-actions { display: flex; gap: 10px; flex-grow: 1; margin-right: 15px; }
+        .btn-cart-modal { background-color: #ff9900; color: white; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; flex-grow: 1; text-align: center; font-size: 0.9em;}
+        .btn-instant-order { background-color: #a30000; color: white; padding: 10px 15px; border-radius: 8px; font-weight: bold; cursor: pointer; border: none; flex-grow: 1; text-align: center; font-size: 0.9em;}
+        .quantity-control-modal { display: flex; align-items: center; background-color: #f0f0f0; border-radius: 8px; }
+        
+        /* Gaya Gambar Modal (agar tidak terpotong) */
+        .modal-image-container {
+            height: 150px; 
+            margin-bottom: 10px;
+            background-color: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border-radius: 8px;
+        }
+        .modal-product-image {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain; 
+            display: block;
+        }
+
+
+        /* PAYMENT PAGE (CHECKOUT) */
+        #payment-page { display: none; }
+        .checkout-section { background-color: white; padding: 20px; border-radius: 8px; margin-bottom: 15px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .checkout-section h3 { color: #a30000; border-bottom: 1px solid #eee; padding-bottom: 5px; margin-top: 0; }
+
+        /* Gaya Form Alamat + Centang Otomatis */
+        .form-group { margin-bottom: 15px; padding: 10px; border: 1px solid #f0f0f0; border-radius: 5px; background-color: #fafafa; position: relative; } 
+        .form-group label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9em; color: #333; }
+        .form-group input, .form-group textarea { width: calc(100% - 2px); padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 1em; }
+        
+        /* Ikon Centang Dinamis */
+        .check-icon {
+            position: absolute;
+            top: 50%;
+            right: 15px;
+            transform: translateY(-50%);
+            color: #00a800; 
+            font-size: 1.2em;
+            display: none;
+        }
+        
+        /* Baris Biaya Pengiriman */
+        .shipping-fee-row {
+            display:flex; justify-content:space-between; font-size: 0.9em; color: #666;
+            margin-top: 5px;
+            padding-top: 5px;
+        }
+        
+        /* Checkout Summary & Footer */
+        .checkout-summary { 
+            padding: 15px; background-color: #f9f9f9; border-radius: 8px; margin-top: 15px; 
+            display: grid; grid-template-columns: 1fr auto; gap: 5px;
+        }
+        .checkout-summary .total { 
+            border-top: 1px solid #ddd; padding-top: 10px; margin-top: 5px; font-size: 1.1em;
+            font-weight: bold; grid-column: 1 / span 2; display: flex; justify-content: space-between;
+        }
+
+        /* Detail Pesanan dengan Ikon */
+        .checkout-item {
+            padding: 5px 0;
+            border-bottom: 1px dashed #eee;
+        }
+        .checkout-item:last-child {
+            border-bottom: none;
+        }
+        .checkout-item-details {
+            display:flex; justify-content:space-between; align-items:flex-start;
+        }
+        .product-icon {
+            width: 20px;
+            height: 20px;
+            margin-right: 10px;
+            border-radius: 4px;
+            object-fit: cover;
+            vertical-align: middle;
+        }
+
+        /* Gaya Khusus untuk Struk Digital */
+        #receipt-page .checkout-summary .total {
+            border-top: 2px dashed #a30000;
+        }
+
+        /* PERBAIKAN STYLING TOMBOL PEMBAYARAN */
+        .payment-option {
+            display: block;
+            background-color: #fff;
+            padding: 12px;
+            margin-bottom: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-weight: 500;
+            display: flex; 
+            align-items: center;
+        }
+        .payment-option:hover {
+            background-color: #f7f7f7;
+        }
+        .payment-option input[type="radio"] {
+            margin-right: 10px;
+            accent-color: #a30000; 
+            transform: scale(1.1);
+        }
+        .payment-option span {
+            display: flex;
+            align-items: center;
+        }
+        .payment-option span i {
+            margin-right: 8px;
+            color: #a30000;
+        }
+
+        /* PERBAIKAN STYLING FLOATING FOOTER & TOMBOL BUAT PESANAN */
+        .floating-pay-footer {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background-color: white;
+            padding: 10px 20px;
+            box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+        }
+        .floating-pay-footer .price-info {
+            line-height: 1.3;
+        }
+        .btn-pay {
+            background-color: #a30000; /* Warna Utama Merah */
+            color: white;
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        .btn-pay:hover {
+            background-color: #830000;
+        }
+/* FLOATING CART BUBLE */
+#floating-cart-btn {
+    position: fixed;
+    bottom: 25px;
+    right: 25px;
+    background-color: #a30000;
+    width: 65px;
+    height: 65px;
+    border-radius: 50%;
+    display: none;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    font-size: 1.8em;
+    cursor: pointer;
+    z-index: 1500;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#floating-cart-btn:hover {
+    transform: scale(1.07);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.35);
+}
+
+.cart-badge {
+    position: absolute;
+    top: -5px;
+    right: -5px;
+    background-color: #ffcc00;
+    color: #a30000;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    font-size: 0.8em;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.25);
+}
+
+
+    </style>
+</head>
+<body>
+
+    <div id="splash-screen">
+        <h1>Selamat datang di Dimsum Yes!</h1>
+        <p>Solusi Cepat Nikmat Dimsum Kekinian</p>
+        <div class="btn-start" id="btn-masuk">
+            Masuk dan Pesan Sekarang!
+        </div>
+    </div>
+
+    <div id="main-menu" style="display: none;">
+        <div class="header">
+            <h1>Dimsum Yes! Official</h1>
+        </div>
+
+        <div class="container">
+            <div class="shop-profile">
+                <div class="logo-circle">
+                    <span>Dimsum</span>
+                    <span>Yes!</span>
+                </div>
+                <div class="shop-info">
+                    <h2>Dimsum Yes!</h2>
+                    <p>Kami menyajikan berbagai varian dimsum premium yang dibuat dari bahan-bahan segar berkualitas tinggi. Rasakan tekstur lembut dan isian yang kaya rasa. Kami selalu siap melayani pesanan Anda dengan cepat dan praktis. Selamat menikmati sajian dimsum terbaik dari kami!</p>
+                </div>
+            </div>
+            
+            <div class="menu-section">
+                <h2>Semua Menu Kami</h2>
+                
+                <div class="product-grid">
+                    
+                    <div class="product-card" onclick="openModal('goreng')">
+                        <img src="https://imgur.com/qYQUGPD.jpg" alt="Dimsum Goreng" class="product-image">
+                        <div class="product-content">
+                            <h3>Dimsum Ayam Goreng</h3>
+                            <p>Dimsum klasik yang digoreng garing dengan isian ayam pilihan. Nikmat disantap kapan saja.</p>
+                            <div class="product-footer">
+                                <i class="fas fa-plus-circle" style="color: #a30000; font-size: 1.5em;"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="product-card" onclick="openModal('chili')">
+                        <img src="https://imgur.com/30KlEBq.jpg" alt="Dimsum Chili Oil" class="product-image">
+                        <div class="product-content">
+                            <h3>Dimsum Chili Oil</h3>
+                            <p>Dimsum kukus lembut disiram saus chili oil pedas gurih. Cocok untuk pecinta pedas!</p>
+                            <div class="product-footer">
+                                <i class="fas fa-plus-circle" style="color: #a30000; font-size: 1.5em;"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="product-card" onclick="openModal('mentai')">
+                        <img src="https://imgur.com/j7fIDp9.jpg" alt="Dimsum Mentai" class="product-image">
+                        <div class="product-content">
+                            <h3>Dimsum Mentai</h3>
+                            <p>Dimsum kukus dengan saus mentai gurih dibakar sempurna. Rasa fusion yang modern.</p>
+                            <div class="product-footer">
+                                <i class="fas fa-plus-circle" style="color: #a30000; font-size: 1.5em;"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="product-card" onclick="openModal('mozarella')">
+                        <img src="https://imgur.com/5L1XGru.jpg" alt="Dimsum Mozzarella" class="product-image">
+                        <div class="product-content">
+                            <h3>Dimsum Keju Mozarella</h3>
+                            <p>Dimsum dengan isian keju mozarella meleleh yang gurih. Inovasi rasa yang wajib dicoba!</p>
+                            <div class="product-footer">
+                                <i class="fas fa-plus-circle" style="color: #a30000; font-size: 1.5em;"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="store-info-section">
+                <h3><i class="fas fa-store"></i> Info Toko & Kontak Kami</h3>
+                <p>
+                    <i class="fas fa-map-marker-alt"></i> 
+                    **Alamat:** Jalan Palem 8 No 158, Bumi Arumsari.
+                </p>
+                <p>
+                    <i class="fas fa-phone-alt"></i> 
+                    **Telepon/WhatsApp:** 082127158582
+                </p>
+                <p>
+                    <i class="fab fa-whatsapp"></i> 
+                    <a href="https://wa.me/6282127158582" target="_blank" class="whatsapp-link">Chat via WhatsApp</a>
+                </p>
+            </div>
+            
+        </div>
+        
+        <div id="floating-cart-btn" onclick="showPayment()" style="display: none;">
+            <i class="fas fa-shopping-basket"></i>
+            <span class="cart-badge" id="cart-item-count">0</span>
+        </div>
+    </div>
+
+    <div id="porsiModal" class="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <h3 id="modal-product-name"></h3>
+            
+            <div class="modal-image-container">
+                <img id="modal-image-tag" class="modal-product-image" src="" alt="Foto Produk">
+            </div>
+            
+            <div id="portion-options-container">
+                </div>
+            
+            <p style="text-align: right; font-weight: bold; font-size: 1.2em; color:#a30000;">Total: <span id="modal-total-price">Rp 0</span></p>
+
+            <div class="modal-checkout-group">
+                <div class="modal-actions">
+                    <button class="btn-cart-modal" onclick="addToCart()">Keranjang</button> 
+                    <button class="btn-instant-order" onclick="placeInstantOrder()">Pesan Sekarang</button>
+                </div>
+
+                <div class="quantity-control-modal">
+                    <button onclick="changeQuantity(-1)" style="border-right: 1px solid #ccc;">&minus;</button>
+                    <span id="modal-quantity">1</span>
+                    <button onclick="changeQuantity(1)" style="border-left: 1px solid #ccc;">+</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="payment-page">
+        <div class="header">
+            <h1 onclick="showMenu()" style="cursor:pointer;"><i class="fas fa-arrow-left"></i> Konfirmasi Pesanan</h1>
+        </div>
+
+        <div class="container" style="padding-bottom: 80px;">
+            
+            <div class="checkout-section">
+                <h3><i class="fas fa-map-marker-alt" style="margin-right: 5px;"></i> Alamat Pengiriman</h3>
+                <div class="form-group">
+                    <label for="nama_penerima">Nama Penerima</label>
+                    <input type="text" id="nama_penerima" placeholder="Cth: Budi Santoso" oninput="validateInput('nama_penerima', 3)">
+                    <i class="fas fa-check check-icon" data-input="nama_penerima"></i>
+                </div>
+                <div class="form-group">
+                    <label for="nomor_hp">Nomor HP</label>
+                    <input type="tel" id="nomor_hp" placeholder="Cth: 081234567890" oninput="validateInput('nomor_hp', 8)">
+                    <i class="fas fa-check check-icon" data-input="nomor_hp"></i>
+                </div>
+                <div class="form-group">
+                    <label for="alamat_lengkap">Alamat Lengkap</label>
+                    <textarea id="alamat_lengkap" rows="3" placeholder="Jalan, No Rumah, Kelurahan, Kecamatan" oninput="updateCheckoutSummary()"></textarea>
+                </div>
+                <p style="font-size: 0.8em; color: #a30000;">*Biaya pengiriman disimulasikan menyesuaikan alamat di atas. (Toko: Jalan Palem 8 No 158, Bumi Arumsari)</p>
+            </div>
+
+            <div class="checkout-section">
+                <h3><i class="fas fa-sticky-note" style="margin-right: 5px;"></i> Catatan Tambahan (Opsional)</h3>
+                <div class="form-group" style="background-color: white;">
+                    <label for="catatan_khusus">Tulis permintaan khusus atau keterangan lainnya:</label>
+                    <textarea id="catatan_khusus" rows="2" placeholder="Cth: Jangan terlalu pedas, atau Titip di Pos Satpam."></textarea>
+                </div>
+            </div>
+
+            <div class="checkout-section">
+                <h3><i class="fas fa-money-bill-wave" style="margin-right: 5px;"></i> Metode Pembayaran</h3>
+                <div style="padding: 5px; background-color: white;">
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="Bayar di Tempat (COD)" checked>
+                        <span><i class="fas fa-handshake"></i> Bayar di Tempat (COD)</span>
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="DANA">
+                        <span><i class="fas fa-wallet"></i> DANA</span>
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="OVO">
+                        <span><i class="fas fa-wallet"></i> OVO</span>
+                    </label>
+                    <label class="payment-option">
+                        <input type="radio" name="payment_method" value="Transfer Bank">
+                        <span><i class="fas fa-university"></i> Transfer Bank (BCA/Mandiri)</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="checkout-section">
+                <h3><i class="fas fa-receipt" style="margin-right: 5px;"></i> Detail Pesanan</h3>
+                <div id="checkout-items">
+                    <p style="color: #666; text-align: center;">Keranjang kosong. Tambahkan item di menu utama.</p>
+                </div>
+                
+                <div style="border-top: 1px solid #eee; padding-top: 10px; margin-top: 10px;">
+                    <div class="shipping-fee-row">
+                        <span>Biaya Pengiriman</span>
+                        <span id="display-shipping-fee">Rp 0</span> 
+                    </div>
+                </div>
+            </div>
+            
+            <div class="checkout-summary">
+                <span>Total Harga Produk</span>
+                <span id="summary-subtotal">Rp 0</span>
+                <span>Total Biaya Pengiriman</span>
+                <span id="summary-shipping-fee">Rp 0</span>
+                <div class="total">
+                    <span>Total yang Harus Dibayar</span>
+                    <strong id="summary-total">Rp 0</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="floating-pay-footer">
+            <div class="price-info">
+                <span>Total:</span>
+                <strong id="footer-total">Rp 0</strong>
+            </div>
+            <button class="btn-pay" onclick="simulatePayment()">
+                Buat Pesanan </button>
+        </div>
+    </div>
+    
+    <div id="receipt-page" style="display: none;">
+        <div class="header" style="background-color: #00a800;">
+            <h1 style="font-size: 1.1em;"><i class="fas fa-check-circle"></i> Pesanan Diterima!</h1>
+        </div>
+
+        <div class="container" style="padding-top: 10px;">
+            <div style="text-align: center; padding: 20px; background-color: white; border-radius: 10px; margin-bottom: 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                <i class="fas fa-receipt" style="font-size: 3em; color: #a30000; margin-bottom: 15px;"></i>
+                <h2>Invoice Pesanan</h2>
+                <p style="color: #666;">Mohon konfirmasi pesanan Anda ke WhatsApp kami di bawah ini.</p>
+            </div>
+            
+            <div class="checkout-section">
+                <h3><i class="fas fa-user-circle" style="margin-right: 5px;"></i> Info Pelanggan</h3>
+                <p><strong>Nama:</strong> <span id="receipt-nama"></span></p>
+                <p><strong>HP:</strong> <span id="receipt-hp"></span></p>
+                <p><strong>Alamat:</strong> <span id="receipt-alamat"></span></p>
+                <p><strong>Catatan:</strong> <span id="receipt-catatan">Tidak ada</span></p>
+            </div>
+
+            <div class="checkout-section">
+                <h3><i class="fas fa-shopping-basket" style="margin-right: 5px;"></i> Detail Order</h3>
+                <div id="receipt-items">
+                    </div>
+            </div>
+
+            <div class="checkout-section" style="border: 2px solid #a30000; background-color: #ffe6e6;">
+                <h3><i class="fas fa-money-check-alt" style="margin-right: 5px;"></i> Total Pembayaran</h3>
+                <div class="checkout-summary" style="background-color: transparent; padding: 0;">
+                    <span>Subtotal Produk</span>
+                    <span id="receipt-subtotal">Rp 0</span>
+                    <span>Ongkos Kirim</span>
+                    <span id="receipt-shipping-fee">Rp 0</span>
+                    <div class="total" style="border-top: 2px dashed #a30000;">
+                        <span>TOTAL AKHIR</span>
+                        <strong id="receipt-total">Rp 0</strong>
+                    </div>
+                </div>
+                <p style="margin-top: 15px;"><strong>Metode Bayar:</strong> <span id="receipt-payment-method" style="color: #a30000;"></span></p>
+            </div>
+
+            <div style="text-align: center; margin: 30px 0;">
+                <button class="btn-pay" onclick="sendWhatsapp()" style="width: 90%; background-color: #25D366; font-size: 1.1em; padding: 15px 0;">
+                    <i class="fab fa-whatsapp"></i> Konfirmasi Pesanan via WhatsApp
+                </button>
+            </div>
+            
+        </div>
+    </div>
+
+
+    <script>
+        // Data Produk
+        const products = {
+            'goreng': {
+                name: "Dimsum Ayam Goreng",
+                imageUrl: "https://imgur.com/qYQUGPD.jpg",
+                iconUrl: "https://imgur.com/qYQUGPD.jpg", 
+                portions: [
+                    { size: "3 Pcs", price: 10000 } 
+                ]
+            },
+            'chili': {
+                name: "Dimsum Chili Oil",
+                imageUrl: "https://imgur.com/30KlEBq.jpg", 
+                iconUrl: "https://imgur.com/30KlEBq.jpg", 
+                portions: [
+                    { size: "6 Pcs", price: 15000 },
+                    { size: "12 Pcs", price: 28000 }
+                ]
+            },
+            'mentai': {
+                name: "Dimsum Mentai",
+                imageUrl: "https://imgur.com/j7fIDp9.jpg",
+                iconUrl: "https://imgur.com/j7fIDp9.jpg", 
+                portions: [
+                    { size: "6 Pcs", price: 15000 },
+                    { size: "12 Pcs", price: 28000 }
+                ]
+            },
+            'mozarella': {
+                name: "Dimsum Keju Mozarella",
+                imageUrl: "https://imgur.com/5L1XGru.jpg", 
+                iconUrl: "https://imgur.com/5L1XGru.jpg", 
+                portions: [
+                    { size: "6 Pcs", price: 18000 }, 
+                    { size: "12 Pcs", price: 36000 } 
+                ]
+            }
+        };
+
+        let currentShippingFee = 0;
+        let cart = []; 
+        let currentProduct = null;
+        let selectedPortion = null;
+        let modalQuantity = 1;
+        let finalOrderDetails = {}; // Untuk menyimpan data pesanan sebelum dikirim ke WA
+
+        // FUNGSI UTILITY
+        function formatRupiah(number) {
+            return new Intl.NumberFormat('id-ID', {
+                style: 'currency',
+                currency: 'IDR',
+                minimumFractionDigits: 0
+            }).format(number);
+        }
+
+        // FUNGSI VALIDASI INPUT (Checkmark Otomatis)
+        function validateInput(inputId, minLength) {
+            const inputElement = document.getElementById(inputId);
+            const checkIcon = document.querySelector(`.check-icon[data-input="${inputId}"]`);
+            
+            if (checkIcon) {
+                if (inputElement.value.trim().length >= minLength) {
+                    checkIcon.style.display = 'block';
+                } else {
+                    checkIcon.style.display = 'none';
+                }
+            }
+            if(inputId === 'alamat_lengkap') {
+                 updateCheckoutSummary();
+            }
+        }
+
+        // FUNGSI SHIPPING & DISPLAY
+        function calculateShippingFee(address) {
+            const addressText = address.toLowerCase();
+            let fee = 0;
+
+            if (addressText.length < 10) {
+                fee = 5000; 
+            } 
+            else if (addressText.includes('kota') || addressText.includes('kabupaten') || addressText.length > 30) {
+                fee = 15000;
+            }
+            else {
+                fee = 10000;
+            }
+
+            currentShippingFee = fee;
+            return fee;
+        }
+
+        function updateCheckoutSummary() {
+            const addressInput = document.getElementById('alamat_lengkap');
+            
+            const fee = calculateShippingFee(addressInput.value); 
+            
+            let subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+            
+            const grandTotal = subtotal + fee;
+
+            document.getElementById('display-shipping-fee').textContent = formatRupiah(fee);
+            document.getElementById('summary-shipping-fee').textContent = formatRupiah(fee);
+            document.getElementById('summary-subtotal').textContent = formatRupiah(subtotal);
+            document.getElementById('summary-total').textContent = formatRupiah(grandTotal);
+            document.getElementById('footer-total').textContent = formatRupiah(grandTotal);
+        }
+
+        function updateCartDisplay() {
+            const cartItemCountBadge = document.getElementById('cart-item-count');
+            cartItemCountBadge.textContent = cart.length; 
+
+            const checkoutItemsContainer = document.getElementById('checkout-items');
+            
+            let subtotal = 0;
+            checkoutItemsContainer.innerHTML = '';
+            
+            if (cart.length === 0) {
+                document.getElementById('floating-cart-btn').style.display = 'none'; 
+                checkoutItemsContainer.innerHTML = '<p style="color: #666; text-align: center;">Keranjang kosong. Tambahkan item di menu utama.</p>';
+                subtotal = 0;
+            } else {
+                document.getElementById('floating-cart-btn').style.display = 'flex'; 
+                cart.forEach((item) => {
+                    const itemSubtotal = item.price * item.quantity;
+                    subtotal += itemSubtotal;
+                    
+                    const itemDiv = document.createElement('div');
+                    itemDiv.className = 'checkout-item';
+                    
+                    itemDiv.innerHTML = `
+                        <div class="checkout-item-details">
+                            <div style="flex-grow: 1;">
+                                <img src="${item.iconUrl}" alt="icon" class="product-icon">
+                                <span style="font-weight: bold;">${item.name}</span>
+                                <p style="margin: 3px 0 0 30px; font-size: 0.85em; color: #999;">${item.size}</p>
+                            </div>
+                            <div style="text-align: right;">
+                                <p style="margin: 0; font-size: 0.9em; color: #666;">x${item.quantity}</p>
+                                <p style="margin: 3px 0; font-weight: bold; color: #333;">${formatRupiah(itemSubtotal)}</p>
+                            </div>
+                        </div>
+                    `;
+                    checkoutItemsContainer.appendChild(itemDiv);
+                });
+            }
+            updateCheckoutSummary(); 
+        }
+
+        function updateModalTotal() {
+            if (selectedPortion) {
+                const total = selectedPortion.price * modalQuantity;
+                document.getElementById('modal-total-price').textContent = formatRupiah(total);
+            } else {
+                document.getElementById('modal-total-price').textContent = formatRupiah(0);
+            }
+        }
+
+        function changeQuantity(change) {
+            modalQuantity = Math.max(1, modalQuantity + change);
+            document.getElementById('modal-quantity').textContent = modalQuantity;
+            updateModalTotal();
+        }
+
+        function openModal(productId) {
+            currentProduct = productId;
+            const product = products[productId];
+            
+            document.getElementById('modal-product-name').textContent = product.name;
+            
+            const modalImageTag = document.getElementById('modal-image-tag'); 
+            modalImageTag.src = product.imageUrl; 
+            modalImageTag.alt = product.name;
+
+            const optionsContainer = document.getElementById('portion-options-container');
+            optionsContainer.innerHTML = '';
+            selectedPortion = null; 
+            modalQuantity = 1; 
+
+            product.portions.forEach((portion, index) => {
+                const div = document.createElement('div');
+                div.className = 'portion-option';
+                div.innerHTML = `
+                    <span>${portion.size}</span>
+                    <span class="portion-price">${formatRupiah(portion.price)}</span>
+                `;
+                if (index === 0) {
+                    div.classList.add('selected');
+                    selectedPortion = portion;
+                }
+                div.onclick = () => selectPortion(index);
+                optionsContainer.appendChild(div);
+            });
+            
+            document.getElementById('modal-quantity').textContent = modalQuantity;
+            updateModalTotal(); 
+
+            document.getElementById('porsiModal').style.display = 'block';
+        }
+
+        function selectPortion(index) {
+            selectedPortion = products[currentProduct].portions[index];
+            const options = document.querySelectorAll('.portion-option');
+            options.forEach((opt, i) => {
+                opt.classList.remove('selected');
+                if (i === index) {
+                    opt.classList.add('selected');
+                }
+            });
+            updateModalTotal();
+        }
+
+        function closeModal() {
+            document.getElementById('porsiModal').style.display = 'none';
+        }
+
+        function addToCart() {
+            if (!selectedPortion) {
+                alert('Silakan pilih salah satu porsi terlebih dahulu.');
+                return;
+            }
+
+            const product = products[currentProduct];
+            
+            cart.push({
+                name: product.name,
+                size: selectedPortion.size,
+                price: selectedPortion.price,
+                quantity: modalQuantity,
+                iconUrl: product.iconUrl 
+            });
+
+            closeModal();
+            updateCartDisplay();
+            alert(`${modalQuantity}x ${product.name} (${selectedPortion.size}) telah ditambahkan ke keranjang!`);
+        }
+
+        function placeInstantOrder() {
+            if (!selectedPortion) {
+                alert('Silakan pilih salah satu porsi terlebih dahulu.');
+                return;
+            }
+            
+            const product = products[currentProduct];
+            
+            cart = [{
+                name: product.name,
+                size: selectedPortion.size,
+                price: selectedPortion.price,
+                quantity: modalQuantity,
+                iconUrl: product.iconUrl
+            }];
+            
+            closeModal();
+            updateCartDisplay();
+            showPayment();
+        }
+
+        function showPayment() {
+            document.getElementById('main-menu').style.display = 'none';
+            document.getElementById('payment-page').style.display = 'block';
+            document.getElementById('receipt-page').style.display = 'none'; // Pastikan receipt hidden
+            updateCartDisplay(); 
+        }
+
+        function showMenu() {
+            document.getElementById('payment-page').style.display = 'none';
+            document.getElementById('receipt-page').style.display = 'none';
+            document.getElementById('main-menu').style.display = 'block';
+        }
+
+        // FUNGSI BARU UNTUK STRUK
+        function displayReceipt(nama, hp, alamat, catatan, paymentMethod, subtotal, total, fee) {
+            document.getElementById('payment-page').style.display = 'none';
+            document.getElementById('receipt-page').style.display = 'block';
+
+            // 1. Isi Data Pelanggan
+            document.getElementById('receipt-nama').textContent = nama;
+            document.getElementById('receipt-hp').textContent = hp;
+            document.getElementById('receipt-alamat').textContent = alamat;
+            document.getElementById('receipt-catatan').textContent = catatan || 'Tidak ada';
+
+            // 2. Isi Detail Biaya
+            document.getElementById('receipt-subtotal').textContent = formatRupiah(subtotal);
+            document.getElementById('receipt-shipping-fee').textContent = formatRupiah(fee);
+            document.getElementById('receipt-total').textContent = formatRupiah(total);
+            document.getElementById('receipt-payment-method').textContent = paymentMethod;
+
+            // 3. Isi Item Pesanan
+            const receiptItemsContainer = document.getElementById('receipt-items');
+            receiptItemsContainer.innerHTML = '';
+            
+            cart.forEach((item) => {
+                const itemTotal = item.price * item.quantity;
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'checkout-item';
+                itemDiv.innerHTML = `
+                    <div class="checkout-item-details">
+                        <div style="flex-grow: 1;">
+                            <img src="${item.iconUrl}" alt="icon" class="product-icon">
+                            <span style="font-weight: bold;">${item.name}</span>
+                            <p style="margin: 3px 0 0 30px; font-size: 0.85em; color: #999;">${item.size}</p>
+                        </div>
+                        <div style="text-align: right;">
+                            <p style="margin: 0; font-size: 0.9em; color: #666;">x${item.quantity}</p>
+                            <p style="margin: 3px 0; font-weight: bold; color: #333;">${formatRupiah(itemTotal)}</p>
+                        </div>
+                    </div>
+                `;
+                receiptItemsContainer.appendChild(itemDiv);
+            });
+        }
+        
+        function sendWhatsapp() {
+            // Mengambil data yang sudah disimpan saat tombol Pesan ditekan di halaman checkout
+            const { nama, hp, alamat, catatan, paymentMethod, cart, subtotal, total, currentShippingFee } = finalOrderDetails;
+
+            let message = `*PESANAN BARU DIMSUM YES!* %0A%0A`;
+            message += `*Data Pelanggan:*%0A`;
+            message += `Nama: ${nama}%0A`;
+            message += `No. HP: ${hp}%0A`;
+            message += `Alamat: ${alamat}%0A`;
+            
+            if (catatan && catatan.trim() !== '') {
+                 message += `Catatan Khusus: ${catatan}%0A`;
+            }
+            message += `%0A`; 
+            
+            message += `*Detail Pesanan:*%0A`;
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                message += `• ${item.name} (${item.size}) x${item.quantity} = ${formatRupiah(itemTotal)}%0A`;
+            });
+            
+            message += `%0A*Rincian Biaya:*%0A`;
+            message += `Subtotal Produk: ${formatRupiah(subtotal)}%0A`;
+            message += `Ongkos Kirim: ${formatRupiah(currentShippingFee)}%0A`;
+            message += `*TOTAL BAYAR: ${formatRupiah(total)}*%0A%0A`;
+            
+            message += `*Metode Pembayaran:* ${paymentMethod}%0A%0A`;
+            
+            message += `Terima kasih! Kami akan segera memproses pesanan Anda.`;
+
+            const whatsappUrl = `https://wa.me/6282127158582?text=${message}`;
+            window.open(whatsappUrl, '_blank');
+        }
+
+        // FUNGSI INI HANYA MENAMPILkan STRUK, TIDAK LANGSUNG KE WA
+        function simulatePayment() {
+            if (cart.length === 0) {
+                alert('Keranjang Anda kosong. Mohon tambahkan item sebelum membuat pesanan.');
+                return;
+            }
+            
+            const nama = document.getElementById('nama_penerima').value;
+            const hp = document.getElementById('nomor_hp').value;
+            const alamat = document.getElementById('alamat_lengkap').value;
+            const catatan = document.getElementById('catatan_khusus').value; 
+            const paymentMethod = document.querySelector('input[name="payment_method"]:checked').value;
+
+            if (!nama || !hp || !alamat) {
+                alert('Mohon lengkapi Nama, Nomor HP, dan Alamat Lengkap Anda.');
+                return;
+            }
+            
+            let subtotal = cart.reduce((total, item) => total + (item.price * item.quantity), 0);
+            const total = subtotal + currentShippingFee;
+
+            // Simpan detail pesanan ke variabel global
+            finalOrderDetails = {
+                nama, hp, alamat, catatan, paymentMethod, 
+                cart, subtotal, total, currentShippingFee
+            };
+
+            // Tampilkan halaman struk, BUKAN LANGSUNG KE WHATSAPP
+            displayReceipt(nama, hp, alamat, catatan, paymentMethod, subtotal, total, currentShippingFee);
+        }
+
+        // INIT
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('btn-masuk').addEventListener('click', () => {
+                document.getElementById('splash-screen').style.opacity = '0';
+                setTimeout(() => {
+                    document.getElementById('splash-screen').style.display = 'none';
+                    document.getElementById('main-menu').style.display = 'block';
+                }, 500);
+            });
+            updateCartDisplay();
+            validateInput('nama_penerima', 3);
+            validateInput('nomor_hp', 8);
+        });
+
+    </script>
+</body>
+</html>
